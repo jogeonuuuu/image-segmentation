@@ -1,7 +1,7 @@
 # Segmenter - ADE20K
 
 
-https://github.com/rstrudel/segmenter/blob/master/segm/data/config/ade20k.yml
+[class ID](https://github.com/rstrudel/segmenter/blob/master/segm/data/config/ade20k.yml)
 ```
 std::vector<cv::Vec3b> colors(150);
 
