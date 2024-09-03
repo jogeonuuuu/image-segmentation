@@ -24,40 +24,31 @@ void mysub_callback(rclcpp::Node::SharedPtr node,
     cv::Mat frame = cv::imdecode(cv::Mat(msg->data), cv::IMREAD_COLOR);
     if (frame.empty()) {
             std::cerr << "End of video or failed to grab sub_frame" << std::endl;
-            //break;
             return;
     }
-    cv::imshow("Input Frame", frame);
-    cv::waitKey(1);
 
     // Step 4: 각 프레임에 대해 추론 수행
-    cv::Mat mask;
+    cv::Mat sgmt_img;
     cudaStream_t stream;
     cudaStreamCreate(&stream); // CUDA 스트림 생성
-    engine.runInference(frame, mask, stream); // 비동기 추론 수행
-    if (mask.empty()) {
+    engine.runInference(frame, sgmt_img, stream); // 비동기 추론 수행
+    if (sgmt_img.empty()) {
         std::cerr << "segmentation mask error" << std::endl;
         return;
     }
-    cv::Mat gray;
-    cv::cvtColor(mask, gray, cv::COLOR_BGR2GRAY);
     
     // Step 5: GPU 작업이 완료될 때까지 동기화 (추론이 끝났을 때), (비동기 모드일 때)
     cudaStreamSynchronize(stream);
 
     // Step 6: "gray_segmentation_image/compressed" TOPIC으로 Publishing
     std_msgs::msg::Header hdr;
-    //sensor_msgs::msg::CompressedImage::SharedPtr img;
-    cv::Mat mask2;
-    cv::resize(mask, mask2, cv::Size(640, 360));
-    auto img = cv_bridge::CvImage(hdr, "mono8", mask2).toCompressedImageMsg();
-    mypub->publish(*img);
+    cv::resize(sgmt_img, sgmt_img, cv::Size(640, 360));
+    auto img = cv_bridge::CvImage(hdr, "mono8", sgmt_img).toCompressedImageMsg();
+    mypub->publish(*img); //sensor_msgs::msg::CompressedImage::SharedPtr img;
 
     // Step 7: 원본 프레임 및 추론된 마스크를 화면에 표시
-    //cv::imshow("Input Frame", frame);
-    //cv::imshow("Segmentation Mask", mask);
-    cv::imshow("Segmentation Mask", mask2);
-    //cv::imshow("gray", gray);
+    cv::imshow("Input Frame", frame);
+    cv::imshow("Segmentation Image", sgmt_img);
     cv::waitKey(1);
 
     auto end = std::chrono::high_resolution_clock::now(); //count stop
