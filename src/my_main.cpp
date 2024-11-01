@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     initializeColors(engine.numClasses);
 
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<rclcpp::Node>("camsub_Node");
+    auto node = std::make_shared<rclcpp::Node>("img_sgmt_Node");
 
     auto mypub = node->create_publisher<sensor_msgs::msg::CompressedImage>("gray_segmentation_image/compressed", 
         rclcpp::QoS(rclcpp::KeepLast(10)).best_effort());
